@@ -4,26 +4,26 @@
 # behaves much like the built-in 'attr', but whose properties require delving
 # deep into the depths of meta-ruby.  usage of the 'attribute' method follows
 # the general form of
-#   
+#
 #   class C
 #     attribute 'a'
 #   end
-#   
+#
 #   o = C::new
 #   o.a = 42  # setter - sets @a
-#   o.a       # getter - gets @a 
+#   o.a       # getter - gets @a
 #   o.a?      # query - true if @a
-#   
+#
 # but reaches much farther than the standard 'attr' method as you will see
 # shortly.
-#   
+#
 # your path, should you choose to follow it, is to write a single file
 # 'knowledge.rb' implementing all functionality required by the koans below.
 # as a student of meta-programming your course will be guided by a guru whose
 # wisdom and pithy sayings will assist you on your journey.
-#   
-# a successful student will eventually be able to do this   
-#   
+#
+# a successful student will eventually be able to do this
+#
 #   harp:~ > ruby metakoans.rb knowledge.rb
 #   koan_1 has expanded your awareness
 #   koan_2 has expanded your awareness
@@ -35,7 +35,7 @@
 #   koan_8 has expanded your awareness
 #   koan_9 has expanded your awareness
 #   mountains are again merely mountains
-#   
+#
 
 
 module MetaKoans
@@ -55,7 +55,7 @@ module MetaKoans
     assert{ o.a? }
   end
 #
-# 'attribute' must provide getter, setter, and query to classes 
+# 'attribute' must provide getter, setter, and query to classes
 #
   def koan_2
     c = Class::new {
@@ -112,7 +112,7 @@ module MetaKoans
     assert{ c.a? }
   end
 #
-# 'attribute' must provide getter, setter, and query to singleton objects 
+# 'attribute' must provide getter, setter, and query to singleton objects
 #
   def koan_5
     o = Object::new
@@ -143,7 +143,7 @@ module MetaKoans
   end
 #
 # 'attribute' must provide a method for providing a default value as block
-# which is evaluated at instance level 
+# which is evaluated at instance level
 #
   def koan_7
     c = Class::new {
@@ -189,7 +189,7 @@ module MetaKoans
     assert{ not o.a? }
   end
 #
-# into the void 
+# into the void
 #
   def koan_9
     b = Class::new {
@@ -219,16 +219,16 @@ module MetaKoans
     assert{ not o.a? }
   end
 
-  def assert() 
+  def assert()
     bool = yield
-    abort "assert{ #{ caller.first[%r/^.*(?=:)/] } } #=> #{ bool.inspect }" unless bool 
+    abort "assert{ #{ caller.first[%r/^.*(?=:)/] } } #=> #{ bool.inspect }" unless bool
   end
 end
 
 
 class MetaStudent
   def initialize knowledge
-    require knowledge
+    require_relative knowledge
   end
   def ponder koan
     begin
@@ -253,7 +253,7 @@ class MetaGuru
 
     attainment = nil
 
-    koans.each do |koan| 
+    koans.each do |koan|
       awakened = student.ponder koan
       if awakened
         puts "#{ koan } has expanded your awareness"
@@ -266,7 +266,7 @@ class MetaGuru
 
     puts(
       case attainment
-        when nil 
+        when nil
           "mountains are merely mountains"
         when 'koan_1', 'koan_2'
           "learn the rules so you know how to break them properly"
@@ -291,5 +291,5 @@ end
 
 
 knowledge = ARGV.shift or abort "#{ $0 } knowledge.rb"
-student = MetaStudent::new knowledge 
+student = MetaStudent::new knowledge
 MetaGuru.enlighten student
