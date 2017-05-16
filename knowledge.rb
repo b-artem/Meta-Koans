@@ -75,18 +75,35 @@ class Object
         instance_variable_set('@' + key, val)
       end
 
-      define_method :initialize do |*args|
-        super(*args)
-        attrs = self.class.instance_variable_get('@attributes')
-        self.class.class_eval { attr_accessor(*attrs.keys) }
-        attrs.each do |key, val|
-          instance_variable_set('@' + key, val)
-        end
-      end
-      # binding.pry
     end
   end
 
 end
 
 puts 'Bye!'
+
+class Module
+
+  class_eval do
+
+  define_method :included do |other_class|
+
+    return unless attrs = instance_variable_get(:@attributes)
+    puts "#{self} was mixed in #{other_class}"
+
+    other_class.class_eval do
+
+      @attributes ||= attrs
+      @attributes.each do |key, val|
+        if val.is_a? Proc
+          proc_val = instance_eval(&val)
+          instance_variable_set('@' + key, proc_val)
+          next
+        end
+        instance_variable_set('@' + key, val)
+      end
+    end
+  end
+
+end
+end
