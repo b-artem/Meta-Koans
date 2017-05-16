@@ -5,7 +5,7 @@ class Object
     if name.instance_of?(Hash)
       attr_name = name.keys[0]
       class_eval { @attributes[attr_name] = name.values[0] }
-    elsif !block.nil? # block_given? == false for some reason
+    elsif block
       attr_name = name
       class_eval { @attributes[attr_name] = block }
     else
@@ -13,7 +13,7 @@ class Object
     end
 
     attr_accessor attr_name
-    define_method((attr_name + '?')) do
+    define_method(attr_name + '?') do
       instance_variable_get('@' + attr_name) ? true : false
     end
 
