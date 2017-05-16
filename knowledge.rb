@@ -1,49 +1,92 @@
-require 'byebug'
+require 'pry'
 
 puts 'Hello!'
 
 class Object
 
-  # def after_method(name, &block)
-  #   original_method = instance_method(name)
-  #   define_method(name) do |*args|
-  #     original_method.bind(self).call(*args)
-  #     block.call(*args)
-  #   end
-  # end
+  define_method :attribute do |name, &block|
 
-  def attribute(name, &block)
-    puts name
+    class_eval { @attributes ||= {} }
 
     if name.instance_of?(Hash)
       inst_var = '@' + name.keys[0]
       method_name = name.keys[0]
-      # define_method(:after_method(:initialize) do |@defaults|
-      #   puts @defaults
-      # end
+      class_eval { @attributes[method_name] = name.values[0] }
       define_method(:initialize) do |*args|
         super(*args)
-        instance_variable_set(inst_var, name.values[0])
+        attrs = self.class.instance_variable_get('@attributes')
+        self.class.class_eval { attr_accessor(*attrs.keys) }
+        attrs.each do |key, val|
+          instance_variable_set('@' + key, val)
+        end
       end
-    elsif block_given?
+    elsif !block.nil? # block_given? false for some reason
       inst_var = '@' + name
       method_name = name
+      class_eval { @attributes[method_name] = block }
       define_method(:initialize) do |*args|
         super(*args)
-        value = instance_eval(&block)
-        instance_variable_set(inst_var, value)
+        attrs = self.class.instance_variable_get('@attributes')
+        self.class.class_eval { attr_accessor(*attrs.keys) }
+        attrs.each do |key, val|
+          if val.is_a? Proc
+            proc_val = instance_eval(&val)
+            instance_variable_set('@' + key, proc_val) # Can I reuse val??????
+            next
+          end
+          instance_variable_set('@' + key, val)
+        end
       end
     else
       inst_var = '@' + name
       method_name = name
+      class_eval { @attributes[method_name] = nil }
+      define_method(:initialize) do |*args|
+        super(*args)
+        return unless attrs = self.class.instance_variable_get('@attributes')
+        self.class.class_eval { attr_accessor(*attrs.keys) }
+        attrs.each do |key, val|
+          instance_variable_set('@' + key, val)
+        end
+      end
     end
 
-    class_eval { attr_accessor method_name }
-    # define_method(method_name.to_sym) { instance_variable_get(inst_var) }
-    # define_method((method_name + '=').to_sym) { |arg| instance_variable_set(inst_var, arg) }
+    attr_accessor method_name
     define_method((method_name + '?').to_sym) { instance_variable_get(inst_var) ? true : false }
 
+    print 'Default values are: '
+    puts instance_variable_get(:@attributes)
+
   end
+
+  def self.inherited(subclass)
+    return unless attrs = instance_variable_get(:@attributes)
+    puts "#{subclass} inherited from #{self}"
+
+    subclass.class_eval do
+
+      @attributes ||= attrs
+      @attributes.each do |key, val|
+        if val.is_a? Proc
+          proc_val = instance_eval(&val)
+          instance_variable_set('@' + key, proc_val)
+          next
+        end
+        instance_variable_set('@' + key, val)
+      end
+
+      define_method :initialize do |*args|
+        super(*args)
+        attrs = self.class.instance_variable_get('@attributes')
+        self.class.class_eval { attr_accessor(*attrs.keys) }
+        attrs.each do |key, val|
+          instance_variable_set('@' + key, val)
+        end
+      end
+      # binding.pry
+    end
+  end
+
 end
 
 puts 'Bye!'

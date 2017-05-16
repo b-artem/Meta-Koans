@@ -1,4 +1,3 @@
-require 'byebug'
 #
 # metakoans.rb is an arduous set of exercises designed to stretch
 # meta-programming muscle.  the focus is on a single method 'attribute' which
@@ -229,7 +228,7 @@ end
 
 class MetaStudent
   def initialize knowledge
-    require_relative knowledge
+    require knowledge
   end
   def ponder koan
     begin
